@@ -1,42 +1,29 @@
 package game;
 
 import java.util.Scanner;
-// import lib.*;
 
 public class hangman {
-    public static char[] strfail;
-    public static char[] strsucc;
-    public static char[] strlist;
-    public static int count_strfail = 0;
-    public static int count_strsucc = 0;
-    public static int lengthstr = 0;
-    public static int is_success = 0;
-    public static int score = 0;
-//    private static int[] removeNone(int[] lst) {
-//        int count=0;
-//        for(int i=0; i<lst.length; i++) {
-//            if(lst[i] != 0) {
-//                count++;
-//            }
-//        }
-//        int[] newlist = new int[count];
-//        count = 0;
-//        for(int i=0; i<lst.length; i++) {
-//            if(lst[i] != 0) {
-//                newlist[count] = lst[i];
-//                count++;
-//            }
-//        }
-//        return newlist;
-//    }
+    private static char[] strfail;
+    private static char[] strsucc;
+    private static char[] strlist;
+    private static String final_answer;
+    private static int count_strfail = 0;
+    private static int count_strsucc = 0;
+    private static int lengthstr = 0;
+    private static int is_success = 0;
+    private static int score = 0;
+    private static boolean is_done = false;
+    
     private static void clear() {
         try {
+            // replace clear to cls if you use Windows!
             Runtime.getRuntime().exec("clear");
         }
         catch (Exception e) {
             
         }
     }
+    
     private static int getlengthstr(char[] lst) {
         int tmp=0;
         for(int i=0; i<lst.length; i++) {
@@ -46,6 +33,7 @@ public class hangman {
         }
         return tmp;
     }
+    
     private static int[] getindexspace(char[] lst) {
         int[] index = new int[lst.length];
         for(int i=0; i<lst.length; i++) {
@@ -57,22 +45,35 @@ public class hangman {
         }
         return index;
     }
+    
     private static char[] getstringlst() {
         clear();
         Scanner input = new Scanner(System.in);
-        System.out.print("Text: ");
-        String str = input.nextLine().toLowerCase();
-        char[] strlist = new char[str.length()];
+        while (true) {
+           System.out.print("Text: ");
+           hangman.final_answer = input.nextLine().toLowerCase();
+           if (hangman.final_answer != "") {
+               break;
+           }
+        }
+        char[] strlist = new char[hangman.final_answer.length()];
         int count = 0;
-        for(char c : str.toCharArray()) {
+        for(char c : hangman.final_answer.toCharArray()) {
             strlist[count] = c;
             count++;
         }
         return strlist;
     }
+    
     private static boolean checkinput(String str) {
         if(str == "") {
             return true;
+        } else {
+            if (str.contentEquals(hangman.final_answer)) {
+                hangman.is_success = 1;
+                hangman.is_done = true;
+                return true;
+            }
         }
         for(int i=0; i<hangman.strsucc.length; i++) {
             if (str.charAt(0) == hangman.strsucc[i]) {
@@ -81,6 +82,7 @@ public class hangman {
         }
         return true;
     }
+    
     private static void printhidden(int[] lst, int size) {
         boolean tmp = false;
         System.out.println();
@@ -89,22 +91,31 @@ public class hangman {
             if(lst[i] != -1) {
                 System.out.print(" ");
             } else {
-                tmp = false;
-                for(int j=0; j<hangman.count_strsucc; j++) {
-                    if (hangman.strsucc[j] == hangman.strlist[i]) {
-                        System.out.print(hangman.strlist[i]);
-                        tmp = true;
+                if (!hangman.is_done) {
+                    tmp = false;
+                    for(int j=0; j<hangman.count_strsucc; j++) {
+                        if (hangman.strsucc[j] == hangman.strlist[i]) {
+                            System.out.print(hangman.strlist[i]);
+                            tmp = true;
+                        }
                     }
-                }
-                if (!tmp) {
-                    System.out.print("_");
+                    if (!tmp) {
+                        System.out.print("_");
+                    }
+                } else {
+                    System.out.print(hangman.strlist[i]);
                 }
             }
         }
         System.out.println("|");
     }
+    
     private static void process(String str) {
         if (str == "") {
+            return;
+        }
+        if (str == hangman.final_answer) {
+            hangman.is_success = 1;
             return;
         }
         int is_not = 1;
@@ -131,8 +142,8 @@ public class hangman {
         if (hangman.lengthstr <= hangman.count_strsucc) {
             hangman.is_success = 1;
         }
-        
     }
+    
     public static void run(int score) {
         Scanner input = new Scanner(System.in);
         hangman.score = score;
@@ -152,23 +163,21 @@ public class hangman {
         /////
         
         clear();
-        //indexlist = remove0(indexlist);
-//        stdlib.printlst(indexlist);
         while (hangman.is_success == 0) {
             System.out.println("\n\nYour score: " + String.valueOf(hangman.score));
             System.out.print("Error: ");
-//            System.out.println("length: " + String.valueOf(hangman.lengthstr));
-//            System.out.println("c: " + String.valueOf(hangman.count_strsucc));
             for(int i=0; i<hangman.strfail.length; i++) {
                 if (hangman.strfail[i] != '~') {
                     System.out.print(hangman.strfail[i] + " ");
                 }
             }
             printhidden(indexlist,hangman.strlist.length);
-            System.out.print("\n Input: ");
+            System.out.print("\nInput: ");
             String _userinp = input.nextLine().toLowerCase();
             if (checkinput(_userinp)) {
-                process(_userinp);
+                if (!hangman.is_done) {
+                    process(_userinp);
+                }
             } else {
                 System.out.println("You already input this!");      
             }
